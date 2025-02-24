@@ -56,3 +56,10 @@ def mix_columns(a: list[list]):
                    byte_to_galua(a2j) +
                    byte_to_galua(a3j).multiply(GaluaItem(2, 8, [IntM(2, 8)]), irreducible_mix))
     return a
+
+
+def add_round_key(a: list[list], round_key: list[list]):
+    for i in range(len(a)):
+        for j in range(len(a)):
+            a[i][j] = a[i][j] ^ round_key[i][j]
+    return a
