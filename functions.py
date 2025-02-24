@@ -11,9 +11,10 @@ def create_byte_conversions():
             Byte_conversions[i] = 0
             continue
         bits = f"{i:08b}"
-        galua_el = GaluaItem(2, 8, create_intm_list([int(i) for i in bits], 2))
+        galua_el = GaluaItem(2, 8, create_intm_list([int(k) for k in bits], 2))
+        print("cur galua item:", *galua_el.coefficients)
         inv_galua_item = galua_el.inv(irreducible_sub)
-        new_value = int(''.join(str(i.value) for i in inv_galua_item), 2)
+        new_value = int(''.join(str(k.value) for k in inv_galua_item.coefficients), 2)
         Byte_conversions[i] = new_value
 
 
@@ -75,7 +76,12 @@ def generate_round_keys(base_key: list[list]):
         new_round_key = [[0 for _ in range(4)] for _ in range(4)]
         new_round_key[0] = cyclic_shift_left(round_keys[k - 1][3], 1)
         new_round_key[0] = [Byte_conversions[j] for j in new_round_key[0]]
-        new_round_key[0][0] ^= 2^k
+        if k == 9:
+            new_round_key[0][0] ^= 0x1B
+        elif k == 10:
+            new_round_key[0][0] ^= 0x36
+        else:
+            new_round_key[0][0] ^= 2 ** (k - 1)
         new_round_key[0] = [new_round_key[0][j] ^ round_keys[k - 1][0][j] for j in range(len(new_round_key[0]))]
         for i in range(1, 4):
             new_round_key[i] = [new_round_key[i][j] ^ round_keys[k - 1][i][j] for j in range(len(new_round_key[i]))]
@@ -83,3 +89,18 @@ def generate_round_keys(base_key: list[list]):
         round_keys.append(new_round_key)
     return round_keys
 
+
+create_byte_conversions()
+key = [[0x00, 0x01, 0x02, 0x03],
+       [0x04, 0x05, 0x06, 0x07],
+       [0x08, 0x09, 0x0A, 0x0B],
+       [0x0C, 0x0D, 0x0E, 0x0F]]
+
+keys = generate_round_keys(key)
+for key_i in keys:
+    print("------------------------")
+    for i in key_i:
+        for j in i:
+            print(j, end="\t")
+        print()
+    print("------------------------")
