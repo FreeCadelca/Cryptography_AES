@@ -33,12 +33,17 @@ for i in round_keys:
 
 # шифрование каждого блока
 encrypted_blocks = []
-new_block = blocks[0].copy()
-new_block = sub_bytes(new_block)
-new_block = rot_bytes(new_block)
-new_block = mix_columns(new_block)
-new_block = add_round_key(new_block, key_block)
-encrypted_blocks.append(new_block)
+for block in blocks:
+    new_block = block.copy()
+    for round in range(11):
+        new_block = sub_bytes(new_block)
+        new_block = rot_bytes(new_block)
+        new_block = mix_columns(new_block)
+        new_block = add_round_key(new_block, round_keys[round])
+    new_block = sub_bytes(new_block)
+    new_block = rot_bytes(new_block)
+    new_block = add_round_key(new_block, round_keys[-1])
+    encrypted_blocks.append(new_block)
 
 # перевод блоков обратно в текст
 data_enc = []
@@ -84,15 +89,20 @@ round_keys = generate_round_keys(key_block)
 for i in round_keys:
     print(i)
 
-# расшифрование каждого блока
+# шифрование каждого блока
 decrypted_blocks = []
-
-new_block = blocks[0].copy()
-new_block = add_round_key(new_block, key_block)
-new_block = inv_mix_columns(new_block)
-new_block = inv_rot_bytes(new_block)
-new_block = inv_sub_bytes(new_block)
-decrypted_blocks.append(new_block)
+for block in blocks:
+    new_block = block.copy()
+    new_block = add_round_key(new_block, round_keys[-1])
+    for round in range(11, 0, -1):
+        new_block = inv_sub_bytes(new_block)
+        new_block = inv_rot_bytes(new_block)
+        new_block = add_round_key(new_block, round_keys[round])
+        new_block = inv_mix_columns(new_block)
+    new_block = inv_sub_bytes(new_block)
+    new_block = inv_rot_bytes(new_block)
+    new_block = add_round_key(new_block, round_keys[0])
+    decrypted_blocks.append(new_block)
 
 # перевод блоков обратно в текст
 data_dec = []
