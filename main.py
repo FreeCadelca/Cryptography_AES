@@ -5,7 +5,7 @@ with open("plaintext.txt", "rb") as file:
 
 # создание блоков
 if len(data) % 16 != 0:
-    data += [0] * (16 - len(data) % 16)
+    data += [32] * (16 - len(data) % 16)
 blocks = []
 for i in range(0, len(data), 16):
     blocks.append(
@@ -35,11 +35,11 @@ for i in round_keys:
 encrypted_blocks = []
 for block in blocks:
     new_block = block.copy()
-    for round in range(11):
+    for cur_round in range(11):
         new_block = sub_bytes(new_block)
         new_block = rot_bytes(new_block)
         new_block = mix_columns(new_block)
-        new_block = add_round_key(new_block, round_keys[round])
+        new_block = add_round_key(new_block, round_keys[cur_round])
     new_block = sub_bytes(new_block)
     new_block = rot_bytes(new_block)
     new_block = add_round_key(new_block, round_keys[-1])
@@ -63,7 +63,7 @@ with open("ciphertext.txt", "rb") as file:
 
 # создание блоков
 if len(data) % 16 != 0:
-    data += [0] * (16 - len(data) % 16)
+    data += [32] * (16 - len(data) % 16)
 blocks = []
 for i in range(0, len(data), 16):
     blocks.append(
@@ -89,19 +89,21 @@ round_keys = generate_round_keys(key_block)
 for i in round_keys:
     print(i)
 
-# шифрование каждого блока
+# расшифрование каждого блока
 decrypted_blocks = []
 for block in blocks:
     new_block = block.copy()
     new_block = add_round_key(new_block, round_keys[-1])
-    for round in range(11, 0, -1):
-        new_block = inv_sub_bytes(new_block)
-        new_block = inv_rot_bytes(new_block)
-        new_block = add_round_key(new_block, round_keys[round])
-        new_block = inv_mix_columns(new_block)
     new_block = inv_sub_bytes(new_block)
     new_block = inv_rot_bytes(new_block)
-    new_block = add_round_key(new_block, round_keys[0])
+    for cur_round in range(10, -1, -1):
+        new_block = add_round_key(new_block, round_keys[cur_round])
+        new_block = inv_mix_columns(new_block)
+        new_block = inv_sub_bytes(new_block)
+        new_block = inv_rot_bytes(new_block)
+    # new_block = inv_sub_bytes(new_block)
+    # new_block = inv_rot_bytes(new_block)
+    # new_block = add_round_key(new_block, round_keys[0])
     decrypted_blocks.append(new_block)
 
 # перевод блоков обратно в текст
